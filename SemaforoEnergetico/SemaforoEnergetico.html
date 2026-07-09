@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Semáforo de la luz</title>
+<style>
+  :root {
+    --bg: #F5F8F5;
+    --card: #FFFFFF;
+    --card-2: #F0F4F0;
+    --ink: #16201B;
+    --ink-soft: #5A6B60;
+    --line: #E2E9E2;
+    --accent: #0E7C7B;
+    --barato: #2FA84F;
+    --muybarato: #12805C;
+    --normal: #E0A11B;
+    --caro: #D64541;
+    --shadow: 0 1px 2px rgba(20,40,28,.05), 0 8px 24px rgba(20,40,28,.06);
+    --radius: 18px;
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #10161A;
+      --card: #172026;
+      --card-2: #1E282E;
+      --ink: #EAF1EC;
+      --ink-soft: #93A69A;
+      --line: #263139;
+      --accent: #2BB6B0;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #F5F8F5; --card: #FFFFFF; --card-2: #F0F4F0; --ink: #16201B;
+    --ink-soft: #5A6B60; --line: #E2E9E2; --accent: #0E7C7B;
+    --shadow: 0 1px 2px rgba(20,40,28,.05), 0 8px 24px rgba(20,40,28,.06);
+  }
+  :root[data-theme="dark"] {
+    --bg: #10161A; --card: #172026; --card-2: #1E282E; --ink: #EAF1EC;
+    --ink-soft: #93A69A; --line: #263139; --accent: #2BB6B0;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: var(--bg); }
+  .wrap {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100%;
+    padding: clamp(16px, 4vw, 40px) clamp(14px, 4vw, 28px) 44px;
+    padding-bottom: max(44px, env(safe-area-inset-bottom));
+    -webkit-font-smoothing: antialiased;
+  }
+  .board {
+    max-width: 720px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  header.top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; flex-direction: column; gap: 3px; }
+  .brand h1 {
+    margin: 0; font-size: clamp(20px, 5vw, 26px); font-weight: 700;
+    letter-spacing: -.02em; text-wrap: balance;
+  }
+  .brand .sub { color: var(--ink-soft); font-size: 13px; font-weight: 500; }
+  .today {
+    text-align: right; color: var(--ink-soft); font-size: 12.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+
+  /* Hero status card */
+  .hero {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: clamp(18px, 4vw, 26px);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: clamp(16px, 4vw, 26px);
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(120% 140% at 0% 0%, var(--glow, transparent) 0%, transparent 45%);
+    opacity: .16; pointer-events: none;
+  }
+  .ring {
+    --p: 0;
+    width: clamp(110px, 30vw, 148px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    background:
+      radial-gradient(closest-side, var(--card) 71%, transparent 72% 100%),
+      conic-gradient(var(--dot) calc(var(--p) * 1%), var(--line) 0);
+    position: relative;
+  }
+  .ring .dot-label { text-align: center; }
+  .ring .emoji { font-size: clamp(26px, 7vw, 34px); line-height: 1; }
+  .ring .state {
+    margin-top: 4px; font-size: 12px; font-weight: 700; letter-spacing: .04em;
+    text-transform: uppercase; color: var(--dot);
+  }
+  .hero-info { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .hero-info .now-label {
+    font-size: 12.5px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--ink-soft);
+  }
+  .price {
+    display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .price .big {
+    font-size: clamp(34px, 9vw, 48px); font-weight: 750; letter-spacing: -.03em; line-height: 1;
+  }
+  .price .unit { font-size: 15px; font-weight: 600; color: var(--ink-soft); }
+  .reco {
+    font-size: 14.5px; line-height: 1.45; color: var(--ink); margin-top: 2px;
+    font-weight: 500;
+  }
+  .reco b { font-weight: 700; }
+
+  /* 24h strip */
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: clamp(16px, 4vw, 22px);
+  }
+  .panel h2 {
+    margin: 0 0 2px; font-size: 15px; font-weight: 700; letter-spacing: -.01em;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .panel h2 .hint { font-size: 11.5px; font-weight: 600; color: var(--ink-soft); text-transform: none; letter-spacing: 0; }
+  .bars-scroll { overflow-x: auto; margin: 14px -4px 0; padding: 0 4px 4px; }
+  .bars {
+    display: grid;
+    grid-template-columns: repeat(24, minmax(11px, 1fr));
+    align-items: end;
+    gap: clamp(2px, 1vw, 5px);
+    height: 128px;
+    min-width: 340px;
+  }
+  .bar { position: relative; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+  .bar .fill {
+    width: 100%; border-radius: 5px 5px 3px 3px; background: var(--c);
+    min-height: 5px; transition: height .5s cubic-bezier(.2,.7,.2,1);
+  }
+  .bar.now .fill { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .bar.now::after {
+    content: "ahora"; position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
+    font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--ink); white-space: nowrap;
+  }
+  .axis {
+    display: grid; grid-template-columns: repeat(24, minmax(11px, 1fr));
+    gap: clamp(2px, 1vw, 5px); margin-top: 7px; min-width: 340px;
+  }
+  .axis span {
+    font-size: 8.5px; color: var(--ink-soft); text-align: center;
+    font-variant-numeric: tabular-nums; font-weight: 600;
+  }
+  .axis span.hide { visibility: hidden; }
+
+  /* stat tiles */
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 460px) { .tiles { grid-template-columns: 1fr; } }
+  .tile {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 14px 16px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 5px; position: relative;
+    border-left: 4px solid var(--edge, var(--line));
+  }
+  .tile .k { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); }
+  .tile .v { font-size: 22px; font-weight: 750; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .tile .m { font-size: 12.5px; color: var(--ink-soft); font-weight: 600; }
+
+  /* legend */
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 2px 4px; }
+  .legend .item { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
+  .legend .sw { width: 12px; height: 12px; border-radius: 4px; }
+
+  footer.src {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    flex-wrap: wrap; color: var(--ink-soft); font-size: 12px; padding: 4px 4px 0;
+  }
+  footer.src .badge {
+    display: inline-flex; align-items: center; gap: 6px; font-weight: 600;
+  }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--barato); box-shadow: 0 0 0 3px color-mix(in srgb, var(--barato) 25%, transparent); }
+  .demo .live-dot { background: var(--normal); box-shadow: 0 0 0 3px color-mix(in srgb, var(--normal) 25%, transparent); }
+  .refresh {
+    appearance: none; border: 1px solid var(--line); background: var(--card-2);
+    color: var(--ink); font: inherit; font-size: 12px; font-weight: 600;
+    padding: 6px 12px; border-radius: 999px; cursor: pointer;
+  }
+  .refresh:hover { border-color: var(--accent); color: var(--accent); }
+  .refresh:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bar .fill { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="board">
+    <header class="top">
+      <div class="brand">
+        <h1>Semáforo de la luz</h1>
+        <span class="sub">Precio regulado PVPC · Península, Baleares y Canarias</span>
+      </div>
+      <div class="today" id="today">—</div>
+    </header>
+
+    <section class="hero" id="hero" style="--dot: var(--normal); --glow: var(--normal);">
+      <div class="ring" id="ring" style="--dot: var(--normal); --p: 50;">
+        <div class="dot-label">
+          <div class="emoji" id="heroEmoji">🟡</div>
+          <div class="state" id="heroState">Normal</div>
+        </div>
+      </div>
+      <div class="hero-info">
+        <span class="now-label" id="nowLabel">Precio ahora mismo</span>
+        <div class="price">
+          <span class="big" id="nowPrice">—</span>
+          <span class="unit">€/kWh</span>
+        </div>
+        <p class="reco" id="reco">Cargando el precio de la luz…</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Hora a hora <span class="hint" id="dayAvgHint"></span></h2>
+      <div class="bars-scroll">
+        <div class="bars" id="bars" role="img" aria-label="Precio de la luz por hora"></div>
+        <div class="axis" id="axis"></div>
+      </div>
+    </section>
+
+    <section class="tiles">
+      <div class="tile" id="tileCheap" style="--edge: var(--muybarato);">
+        <span class="k">Más barata</span>
+        <span class="v" id="cheapV">—</span>
+        <span class="m" id="cheapM">—</span>
+      </div>
+      <div class="tile" id="tileAvg" style="--edge: var(--accent);">
+        <span class="k">Media del día</span>
+        <span class="v" id="avgV">—</span>
+        <span class="m" id="avgM">€/kWh</span>
+      </div>
+      <div class="tile" id="tileExp" style="--edge: var(--caro);">
+        <span class="k">Más cara</span>
+        <span class="v" id="expV">—</span>
+        <span class="m" id="expM">—</span>
+      </div>
+    </section>
+
+    <div class="legend">
+      <span class="item"><span class="sw" style="background:var(--muybarato)"></span>Muy barato</span>
+      <span class="item"><span class="sw" style="background:var(--barato)"></span>Barato</span>
+      <span class="item"><span class="sw" style="background:var(--normal)"></span>Normal</span>
+      <span class="item"><span class="sw" style="background:var(--caro)"></span>Caro</span>
+    </div>
+
+    <footer class="src" id="src">
+      <span class="badge"><span class="live-dot"></span><span id="srcText">Datos: Red Eléctrica de España (ESIOS) · PVPC</span></span>
+      <button class="refresh" id="refresh" type="button">Actualizar</button>
+    </footer>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // Zonas PVPC: PCB = Península/Canarias/Baleares · CYM = Ceuta y Melilla
+  var API = "https://api.preciodelaluz.org/v1/prices/all?zone=PCB";
+  var MONTHS = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+
+  // Dataset de respaldo (€/MWh) — se usa si la API en directo no está accesible
+  // (por ejemplo, sin conexión). Su forma imita la de preciodelaluz.org.
+  var SAMPLE = [92,85,80,78,79,84,95,110,125,118,100,88,72,65,62,68,82,105,130,155,172,168,140,108];
+
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+
+  function fmtPrice(mwh) {
+    // €/MWh -> €/kWh con 3 decimales
+    return (mwh / 1000).toFixed(3).replace(".", ",");
+  }
+
+  // Clasifica una hora respecto a la distribución del día -> nivel
+  function classify(price, sorted) {
+    var n = sorted.length;
+    var q = function (p) { return sorted[Math.min(n - 1, Math.floor(p * n))]; };
+    var p25 = q(0.25), p50 = q(0.50), p85 = q(0.85);
+    if (price <= p25) return "muybarato";
+    if (price <= p50) return "barato";
+    if (price < p85) return "normal";
+    return "caro";
+  }
+
+  var LEVELS = {
+    muybarato: { color: "var(--muybarato)", emoji: "✅", label: "Muy barato",
+      reco: "Momento ideal para poner lavadora, lavavajillas o cargar el coche." },
+    barato: { color: "var(--barato)", emoji: "🟢", label: "Barato",
+      reco: "Buen momento para gastos altos de energía." },
+    normal: { color: "var(--normal)", emoji: "🟡", label: "Normal",
+      reco: "Precio en la media del día. Sin prisa ni urgencia." },
+    caro: { color: "var(--caro)", emoji: "🔴", label: "Caro",
+      reco: "Mejor evita ahora los electrodomésticos de alto consumo." }
+  };
+
+  function render(prices, isLive, dateLabel) {
+    var sorted = prices.slice().sort(function (a, b) { return a - b; });
+    var max = sorted[sorted.length - 1];
+    var min = sorted[0];
+    var avg = prices.reduce(function (a, b) { return a + b; }, 0) / prices.length;
+    var cheapHour = prices.indexOf(min);
+    var expHour = prices.indexOf(max);
+
+    var now = new Date();
+    var h = now.getHours();
+
+    var todayEl = document.getElementById("today");
+    todayEl.textContent = dateLabel || (now.getDate() + " de " + MONTHS[now.getMonth()]);
+
+    // Hero (hora actual)
+    var lvlKey = classify(prices[h], sorted);
+    var lvl = LEVELS[lvlKey];
+    var hero = document.getElementById("hero");
+    var ring = document.getElementById("ring");
+    var pct = Math.round(((prices[h] - min) / (max - min || 1)) * 100);
+    hero.style.setProperty("--dot", lvl.color);
+    hero.style.setProperty("--glow", lvl.color);
+    ring.style.setProperty("--dot", lvl.color);
+    ring.style.setProperty("--p", Math.max(6, pct));
+    document.getElementById("heroEmoji").textContent = lvl.emoji;
+    document.getElementById("heroState").textContent = lvl.label;
+    document.getElementById("heroState").style.color = lvl.color;
+    document.getElementById("nowLabel").textContent = "Precio de " + pad(h) + ":00 a " + pad((h + 1) % 24) + ":00";
+    document.getElementById("nowPrice").textContent = fmtPrice(prices[h]);
+    document.getElementById("reco").innerHTML = "<b>" + lvl.label + ".</b> " + lvl.reco;
+
+    document.getElementById("dayAvgHint").textContent = "media " + fmtPrice(avg) + " €/kWh";
+
+    // Barras + eje
+    var bars = document.getElementById("bars");
+    var axis = document.getElementById("axis");
+    bars.innerHTML = ""; axis.innerHTML = "";
+    for (var i = 0; i < 24; i++) {
+      var key = classify(prices[i], sorted);
+      var barPct = 8 + ((prices[i] - min) / (max - min || 1)) * 92;
+      var bar = document.createElement("div");
+      bar.className = "bar" + (i === h ? " now" : "");
+      bar.setAttribute("title", pad(i) + ":00 · " + fmtPrice(prices[i]) + " €/kWh · " + LEVELS[key].label);
+      var fill = document.createElement("div");
+      fill.className = "fill";
+      fill.style.setProperty("--c", LEVELS[key].color);
+      fill.style.height = "0%";
+      bar.appendChild(fill);
+      bars.appendChild(bar);
+      (function (f, ph) { requestAnimationFrame(function () { f.style.height = ph.toFixed(1) + "%"; }); })(fill, barPct);
+
+      var ax = document.createElement("span");
+      ax.textContent = pad(i);
+      if (i % 3 !== 0 && i !== h) { ax.className = "hide"; }
+      if (i === h) { ax.style.color = "var(--ink)"; ax.style.fontWeight = "800"; }
+      axis.appendChild(ax);
+    }
+
+    // Tiles
+    document.getElementById("cheapV").textContent = fmtPrice(min);
+    document.getElementById("cheapM").textContent = pad(cheapHour) + ":00 – " + pad((cheapHour + 1) % 24) + ":00 €/kWh";
+    document.getElementById("expV").textContent = fmtPrice(max);
+    document.getElementById("expM").textContent = pad(expHour) + ":00 – " + pad((expHour + 1) % 24) + ":00 €/kWh";
+    document.getElementById("avgV").textContent = fmtPrice(avg);
+
+    // Pie / fuente
+    var src = document.getElementById("src");
+    var srcText = document.getElementById("srcText");
+    if (isLive) {
+      src.classList.remove("demo");
+      srcText.textContent = "Datos en directo: Red Eléctrica de España (ESIOS) · PVPC";
+    } else {
+      src.classList.add("demo");
+      srcText.textContent = "Datos de ejemplo (sin conexión) · Fuente real: REE / ESIOS";
+    }
+  }
+
+  function parseApi(json) {
+    // preciodelaluz.org: objeto con claves "00-01" ... "23-24"
+    var out = new Array(24).fill(null);
+    var dateLabel = null;
+    Object.keys(json).forEach(function (k) {
+      var m = /^(\d{2})-(\d{2})$/.exec(k);
+      if (!m) return;
+      var idx = parseInt(m[1], 10);
+      var row = json[k];
+      if (row && typeof row.price === "number") {
+        out[idx] = row.price; // €/MWh
+        if (!dateLabel && row.date) dateLabel = row.date;
+      }
+    });
+    if (out.some(function (v) { return v === null; })) return null;
+    return { prices: out, dateLabel: dateLabel };
+  }
+
+  function load() {
+    var btn = document.getElementById("refresh");
+    btn.disabled = true; btn.textContent = "Actualizando…";
+    var done = function () { btn.disabled = false; btn.textContent = "Actualizar"; };
+
+    if (typeof fetch !== "function") {
+      render(SAMPLE, false); done(); return;
+    }
+    var ctrl = null;
+    try { ctrl = new AbortController(); } catch (e) {}
+    var t = setTimeout(function () { if (ctrl) ctrl.abort(); }, 7000);
+
+    fetch(API, ctrl ? { signal: ctrl.signal } : undefined)
+      .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
+      .then(function (json) {
+        clearTimeout(t);
+        var parsed = parseApi(json);
+        if (!parsed) throw new Error("shape");
+        render(parsed.prices, true, parsed.dateLabel);
+        done();
+      })
+      .catch(function () {
+        clearTimeout(t);
+        render(SAMPLE, false);
+        done();
+      });
+  }
+
+  document.getElementById("refresh").addEventListener("click", load);
+  load();
+})();
+</script>
+</body>
+</html>
