@@ -3,191 +3,118 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Semáforo de la luz: precio PVPC por horas con datos de REE/ESIOS.">
 <title>Semáforo de la luz</title>
 <style>
   :root {
-    --bg: #F5F8F5;
-    --card: #FFFFFF;
-    --card-2: #F0F4F0;
-    --ink: #16201B;
-    --ink-soft: #5A6B60;
-    --line: #E2E9E2;
-    --accent: #0E7C7B;
-    --barato: #2FA84F;
-    --muybarato: #12805C;
-    --normal: #E0A11B;
-    --caro: #D64541;
+    --bg: #F5F8F5; --card: #FFFFFF; --card-2: #F0F4F0; --ink: #16201B;
+    --ink-soft: #5A6B60; --line: #E2E9E2; --accent: #0E7C7B;
+    --barato: #2FA84F; --muybarato: #12805C; --normal: #E0A11B; --caro: #D64541;
     --shadow: 0 1px 2px rgba(20,40,28,.05), 0 8px 24px rgba(20,40,28,.06);
     --radius: 18px;
     --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #10161A;
-      --card: #172026;
-      --card-2: #1E282E;
-      --ink: #EAF1EC;
-      --ink-soft: #93A69A;
-      --line: #263139;
-      --accent: #2BB6B0;
+      --bg: #10161A; --card: #172026; --card-2: #1E282E; --ink: #EAF1EC;
+      --ink-soft: #93A69A; --line: #263139; --accent: #2BB6B0;
+      --barato: #3BC062; --muybarato: #1E9C72; --normal: #F0B429; --caro: #E85D58;
       --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
     }
   }
   :root[data-theme="light"] {
     --bg: #F5F8F5; --card: #FFFFFF; --card-2: #F0F4F0; --ink: #16201B;
     --ink-soft: #5A6B60; --line: #E2E9E2; --accent: #0E7C7B;
+    --barato: #2FA84F; --muybarato: #12805C; --normal: #E0A11B; --caro: #D64541;
     --shadow: 0 1px 2px rgba(20,40,28,.05), 0 8px 24px rgba(20,40,28,.06);
   }
   :root[data-theme="dark"] {
     --bg: #10161A; --card: #172026; --card-2: #1E282E; --ink: #EAF1EC;
     --ink-soft: #93A69A; --line: #263139; --accent: #2BB6B0;
+    --barato: #3BC062; --muybarato: #1E9C72; --normal: #F0B429; --caro: #E85D58;
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
   }
 
   * { box-sizing: border-box; }
-  html, body { margin: 0; min-height: 100%; background: var(--bg); }
+  body { margin: 0; }
   .wrap {
-    font-family: var(--font);
-    background: var(--bg);
-    color: var(--ink);
-    min-height: 100%;
-    padding: clamp(16px, 4vw, 40px) clamp(14px, 4vw, 28px) 44px;
-    padding-bottom: max(44px, env(safe-area-inset-bottom));
+    font-family: var(--font); background: var(--bg); color: var(--ink);
+    min-height: 100%; padding: clamp(16px, 4vw, 40px) clamp(14px, 4vw, 28px) 48px;
     -webkit-font-smoothing: antialiased;
   }
-  .board {
-    max-width: 720px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
+  .board { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
 
-  header.top {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
+  header.top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
   .brand { display: flex; flex-direction: column; gap: 3px; }
-  .brand h1 {
-    margin: 0; font-size: clamp(20px, 5vw, 26px); font-weight: 700;
-    letter-spacing: -.02em; text-wrap: balance;
-  }
+  .brand h1 { margin: 0; font-size: clamp(20px, 5vw, 26px); font-weight: 700; letter-spacing: -.02em; text-wrap: balance; }
   .brand .sub { color: var(--ink-soft); font-size: 13px; font-weight: 500; }
-  .today {
-    text-align: right; color: var(--ink-soft); font-size: 12.5px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: .06em;
-  }
+  .today { text-align: right; color: var(--ink-soft); font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
 
-  /* Hero status card */
-  .hero {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: clamp(18px, 4vw, 26px);
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: clamp(16px, 4vw, 26px);
-    align-items: center;
-    position: relative;
-    overflow: hidden;
+  /* Semáforo del día (veredicto global) */
+  .dayband {
+    border-radius: var(--radius); padding: clamp(16px, 4vw, 22px) clamp(18px, 4vw, 24px);
+    color: #fff; box-shadow: var(--shadow); position: relative; overflow: hidden;
+    background: linear-gradient(135deg, var(--c1), var(--c2));
   }
-  .hero::before {
-    content: ""; position: absolute; inset: 0;
-    background: radial-gradient(120% 140% at 0% 0%, var(--glow, transparent) 0%, transparent 45%);
-    opacity: .16; pointer-events: none;
-  }
-  .ring {
-    --p: 0;
-    width: clamp(110px, 30vw, 148px);
-    aspect-ratio: 1;
-    border-radius: 50%;
-    display: grid; place-items: center;
-    background:
-      radial-gradient(closest-side, var(--card) 71%, transparent 72% 100%),
-      conic-gradient(var(--dot) calc(var(--p) * 1%), var(--line) 0);
-    position: relative;
-  }
-  .ring .dot-label { text-align: center; }
-  .ring .emoji { font-size: clamp(26px, 7vw, 34px); line-height: 1; }
-  .ring .state {
-    margin-top: 4px; font-size: 12px; font-weight: 700; letter-spacing: .04em;
-    text-transform: uppercase; color: var(--dot);
-  }
-  .hero-info { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-  .hero-info .now-label {
-    font-size: 12.5px; font-weight: 600; text-transform: uppercase;
-    letter-spacing: .06em; color: var(--ink-soft);
-  }
-  .price {
-    display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  .dayband .db-top { display: flex; align-items: center; gap: 12px; }
+  .dayband .db-emoji { font-size: clamp(30px, 8vw, 40px); line-height: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,.2)); }
+  .dayband .db-title { font-size: clamp(18px, 5vw, 23px); font-weight: 800; letter-spacing: -.02em; }
+  .dayband .db-sub { font-size: 13.5px; font-weight: 600; opacity: .92; margin-top: 2px; }
+  .dayband .db-reco { margin: 12px 0 0; font-size: 14px; line-height: 1.5; font-weight: 500; opacity: .97; }
+  .dayband .db-chip {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 12px;
+    background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.35);
+    padding: 5px 11px; border-radius: 999px; font-size: 12.5px; font-weight: 700;
     font-variant-numeric: tabular-nums;
   }
-  .price .big {
-    font-size: clamp(34px, 9vw, 48px); font-weight: 750; letter-spacing: -.03em; line-height: 1;
-  }
+
+  /* Hero hora actual */
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .hero { padding: clamp(18px, 4vw, 26px); display: grid; grid-template-columns: auto 1fr; gap: clamp(16px, 4vw, 26px); align-items: center; position: relative; overflow: hidden; }
+  .hero::before { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 140% at 0% 0%, var(--glow, transparent) 0%, transparent 45%); opacity: .16; pointer-events: none; }
+  .ring { --p: 0; width: clamp(104px, 28vw, 136px); aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center;
+    background: radial-gradient(closest-side, var(--card) 71%, transparent 72% 100%), conic-gradient(var(--dot) calc(var(--p) * 1%), var(--line) 0); position: relative; }
+  .ring .emoji { font-size: clamp(24px, 7vw, 32px); line-height: 1; text-align: center; }
+  .ring .state { margin-top: 4px; font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--dot); text-align: center; }
+  .hero-info { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .hero-info .now-label { font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); }
+  .price { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+  .price .big { font-size: clamp(32px, 9vw, 46px); font-weight: 750; letter-spacing: -.03em; line-height: 1; }
   .price .unit { font-size: 15px; font-weight: 600; color: var(--ink-soft); }
-  .reco {
-    font-size: 14.5px; line-height: 1.45; color: var(--ink); margin-top: 2px;
-    font-weight: 500;
-  }
+  .reco { font-size: 14.5px; line-height: 1.45; color: var(--ink); margin-top: 2px; font-weight: 500; }
   .reco b { font-weight: 700; }
 
-  /* 24h strip */
-  .panel {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: clamp(16px, 4vw, 22px);
-  }
-  .panel h2 {
-    margin: 0 0 2px; font-size: 15px; font-weight: 700; letter-spacing: -.01em;
-    display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  }
+  /* Panel genérico */
+  .panel { padding: clamp(16px, 4vw, 22px); }
+  .panel h2 { margin: 0 0 2px; font-size: 15px; font-weight: 700; letter-spacing: -.01em; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .panel h2 .hint { font-size: 11.5px; font-weight: 600; color: var(--ink-soft); text-transform: none; letter-spacing: 0; }
   .bars-scroll { overflow-x: auto; margin: 14px -4px 0; padding: 0 4px 4px; }
-  .bars {
-    display: grid;
-    grid-template-columns: repeat(24, minmax(11px, 1fr));
-    align-items: end;
-    gap: clamp(2px, 1vw, 5px);
-    height: 128px;
-    min-width: 340px;
-  }
+  .bars { display: grid; grid-template-columns: repeat(24, minmax(11px, 1fr)); align-items: end; gap: clamp(2px, 1vw, 5px); height: 128px; min-width: 340px; }
   .bar { position: relative; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
-  .bar .fill {
-    width: 100%; border-radius: 5px 5px 3px 3px; background: var(--c);
-    min-height: 5px; transition: height .5s cubic-bezier(.2,.7,.2,1);
-  }
+  .bar .fill { width: 100%; border-radius: 5px 5px 3px 3px; background: var(--c); min-height: 5px; transition: height .5s cubic-bezier(.2,.7,.2,1); }
   .bar.now .fill { outline: 2px solid var(--ink); outline-offset: 1px; }
-  .bar.now::after {
-    content: "ahora"; position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
-    font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
-    color: var(--ink); white-space: nowrap;
-  }
-  .axis {
-    display: grid; grid-template-columns: repeat(24, minmax(11px, 1fr));
-    gap: clamp(2px, 1vw, 5px); margin-top: 7px; min-width: 340px;
-  }
-  .axis span {
-    font-size: 8.5px; color: var(--ink-soft); text-align: center;
-    font-variant-numeric: tabular-nums; font-weight: 600;
-  }
+  .bar.now::after { content: "ahora"; position: absolute; top: -16px; left: 50%; transform: translateX(-50%); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--ink); white-space: nowrap; }
+  .axis { display: grid; grid-template-columns: repeat(24, minmax(11px, 1fr)); gap: clamp(2px, 1vw, 5px); margin-top: 7px; min-width: 340px; }
+  .axis span { font-size: 8.5px; color: var(--ink-soft); text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; }
   .axis span.hide { visibility: hidden; }
 
-  /* stat tiles */
+  /* Callout recomendación electrodomésticos */
+  .callout { padding: clamp(16px, 4vw, 22px); display: flex; flex-direction: column; gap: 10px; border-left: 4px solid var(--edge, var(--accent)); }
+  .callout h2 { margin: 0; font-size: 15px; font-weight: 700; }
+  .callout .answer { font-size: 14.5px; line-height: 1.5; font-weight: 500; }
+  .callout .answer b { font-weight: 700; }
+  .hours-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+  @media (max-width: 420px) { .hours-grid { grid-template-columns: 1fr; } }
+  .hbox { background: var(--card-2); border-radius: 12px; padding: 12px 14px; }
+  .hbox .lab { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); display: flex; align-items: center; gap: 6px; }
+  .hbox .val { margin-top: 5px; font-size: 15.5px; font-weight: 750; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+  .hbox.cheap .val { color: var(--muybarato); }
+  .hbox.exp .val { color: var(--caro); }
+
+  /* tiles */
   .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   @media (max-width: 460px) { .tiles { grid-template-columns: 1fr; } }
-  .tile {
-    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-    padding: 14px 16px; box-shadow: var(--shadow);
-    display: flex; flex-direction: column; gap: 5px; position: relative;
-    border-left: 4px solid var(--edge, var(--line));
-  }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 5px; border-left: 4px solid var(--edge, var(--line)); }
   .tile .k { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); }
   .tile .v { font-size: 22px; font-weight: 750; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
   .tile .m { font-size: 12.5px; color: var(--ink-soft); font-weight: 600; }
@@ -197,26 +124,46 @@
   .legend .item { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
   .legend .sw { width: 12px; height: 12px; border-radius: 4px; }
 
-  footer.src {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    flex-wrap: wrap; color: var(--ink-soft); font-size: 12px; padding: 4px 4px 0;
+  /* FAQ */
+  .faq { padding: clamp(16px, 4vw, 22px) clamp(16px, 4vw, 22px) 6px; }
+  .faq > h2 { margin: 0 0 6px; font-size: 16px; font-weight: 800; letter-spacing: -.01em; }
+  details.q { border-top: 1px solid var(--line); }
+  details.q:first-of-type { border-top: 0; }
+  details.q summary {
+    list-style: none; cursor: pointer; padding: 15px 30px 15px 0; position: relative;
+    font-size: 14.5px; font-weight: 650; color: var(--ink); line-height: 1.4;
   }
-  footer.src .badge {
-    display: inline-flex; align-items: center; gap: 6px; font-weight: 600;
+  details.q summary::-webkit-details-marker { display: none; }
+  details.q summary::after {
+    content: "+"; position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+    font-size: 20px; font-weight: 400; color: var(--accent); line-height: 1; transition: transform .2s;
   }
+  details.q[open] summary::after { content: "\2013"; }
+  details.q .a { padding: 0 4px 16px 0; font-size: 14px; line-height: 1.6; color: var(--ink-soft); font-weight: 500; }
+  details.q .a ul { margin: 8px 0 0; padding-left: 18px; }
+  details.q .a li { margin: 4px 0; }
+  details.q .a .dotc { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 7px; vertical-align: baseline; }
+  details.q summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+  footer.src { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; color: var(--ink-soft); font-size: 12px; padding: 4px 4px 0; }
+  footer.src .badge { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
   .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--barato); box-shadow: 0 0 0 3px color-mix(in srgb, var(--barato) 25%, transparent); }
   .demo .live-dot { background: var(--normal); box-shadow: 0 0 0 3px color-mix(in srgb, var(--normal) 25%, transparent); }
-  .refresh {
-    appearance: none; border: 1px solid var(--line); background: var(--card-2);
-    color: var(--ink); font: inherit; font-size: 12px; font-weight: 600;
-    padding: 6px 12px; border-radius: 999px; cursor: pointer;
-  }
+  .refresh { appearance: none; border: 1px solid var(--line); background: var(--card-2); color: var(--ink); font: inherit; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; cursor: pointer; }
   .refresh:hover { border-color: var(--accent); color: var(--accent); }
   .refresh:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-  @media (prefers-reduced-motion: reduce) {
-    .bar .fill { transition: none; }
+  .notifybtn {
+    appearance: none; border: 1px solid rgba(255,255,255,.4); background: rgba(255,255,255,.16);
+    color: #fff; font: inherit; font-size: 12.5px; font-weight: 700; padding: 7px 13px;
+    border-radius: 999px; cursor: pointer; margin-top: 12px; display: inline-flex; align-items: center; gap: 6px;
   }
+  .notifybtn:hover { background: rgba(255,255,255,.26); }
+  .notifybtn.on { background: #fff; color: var(--ink); border-color: #fff; }
+  .notifybtn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .notifyhint { font-size: 11.5px; color: var(--ink-soft); font-weight: 500; padding: 0 4px; margin: -6px 0 0; }
+
+  @media (prefers-reduced-motion: reduce) { .bar .fill { transition: none; } }
 </style>
 </head>
 <body>
@@ -230,25 +177,55 @@
       <div class="today" id="today">—</div>
     </header>
 
-    <section class="hero" id="hero" style="--dot: var(--normal); --glow: var(--normal);">
+    <!-- Veredicto del día -->
+    <section class="dayband" id="dayband" style="--c1: var(--normal); --c2: var(--normal);">
+      <div class="db-top">
+        <span class="db-emoji" id="dbEmoji">🟡</span>
+        <div>
+          <div class="db-title" id="dbTitle">Día medio</div>
+          <div class="db-sub" id="dbSub">Comparando la media de hoy con la de días anteriores</div>
+        </div>
+      </div>
+      <p class="db-reco" id="dbReco">Calculando el semáforo de hoy…</p>
+      <span class="db-chip" id="dbChip">Media del día: —</span>
+      <div><button class="notifybtn" id="notify" type="button">🔔 Aviso diario</button></div>
+    </section>
+    <p class="notifyhint" id="notifyhint" hidden>Te avisaremos una vez al día con el estado del mercado y el precio medio en €/kWh.</p>
+
+    <!-- Hora actual -->
+    <section class="card hero" id="hero" style="--dot: var(--normal); --glow: var(--normal);">
       <div class="ring" id="ring" style="--dot: var(--normal); --p: 50;">
-        <div class="dot-label">
+        <div>
           <div class="emoji" id="heroEmoji">🟡</div>
           <div class="state" id="heroState">Normal</div>
         </div>
       </div>
       <div class="hero-info">
         <span class="now-label" id="nowLabel">Precio ahora mismo</span>
-        <div class="price">
-          <span class="big" id="nowPrice">—</span>
-          <span class="unit">€/kWh</span>
-        </div>
+        <div class="price"><span class="big" id="nowPrice">—</span><span class="unit">€/kWh</span></div>
         <p class="reco" id="reco">Cargando el precio de la luz…</p>
       </div>
     </section>
 
-    <section class="panel">
-      <h2>Hora a hora <span class="hint" id="dayAvgHint"></span></h2>
+    <!-- Recomendación electrodomésticos -->
+    <section class="card callout" id="callout" style="--edge: var(--accent);">
+      <h2>¿Enciendo ahora los electrodomésticos?</h2>
+      <p class="answer" id="calloutAnswer">—</p>
+      <div class="hours-grid">
+        <div class="hbox cheap">
+          <div class="lab"><span class="sw" style="width:10px;height:10px;border-radius:3px;background:var(--muybarato);display:inline-block"></span>Horas más baratas de hoy</div>
+          <div class="val" id="cheapHours">—</div>
+        </div>
+        <div class="hbox exp">
+          <div class="lab"><span class="sw" style="width:10px;height:10px;border-radius:3px;background:var(--caro);display:inline-block"></span>Horas a evitar</div>
+          <div class="val" id="expHours">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Hora a hora -->
+    <section class="card panel">
+      <h2>Precio hora a hora <span class="hint" id="dayAvgHint"></span></h2>
       <div class="bars-scroll">
         <div class="bars" id="bars" role="img" aria-label="Precio de la luz por hora"></div>
         <div class="axis" id="axis"></div>
@@ -256,21 +233,9 @@
     </section>
 
     <section class="tiles">
-      <div class="tile" id="tileCheap" style="--edge: var(--muybarato);">
-        <span class="k">Más barata</span>
-        <span class="v" id="cheapV">—</span>
-        <span class="m" id="cheapM">—</span>
-      </div>
-      <div class="tile" id="tileAvg" style="--edge: var(--accent);">
-        <span class="k">Media del día</span>
-        <span class="v" id="avgV">—</span>
-        <span class="m" id="avgM">€/kWh</span>
-      </div>
-      <div class="tile" id="tileExp" style="--edge: var(--caro);">
-        <span class="k">Más cara</span>
-        <span class="v" id="expV">—</span>
-        <span class="m" id="expM">—</span>
-      </div>
+      <div class="tile" style="--edge: var(--muybarato);"><span class="k">Más barata</span><span class="v" id="cheapV">—</span><span class="m" id="cheapM">—</span></div>
+      <div class="tile" style="--edge: var(--accent);"><span class="k">Media del día</span><span class="v" id="avgV">—</span><span class="m">€/kWh</span></div>
+      <div class="tile" style="--edge: var(--caro);"><span class="k">Más cara</span><span class="v" id="expV">—</span><span class="m" id="expM">—</span></div>
     </section>
 
     <div class="legend">
@@ -279,6 +244,48 @@
       <span class="item"><span class="sw" style="background:var(--normal)"></span>Normal</span>
       <span class="item"><span class="sw" style="background:var(--caro)"></span>Caro</span>
     </div>
+
+    <!-- Preguntas frecuentes -->
+    <section class="card faq">
+      <h2>Resolvemos todas tus dudas</h2>
+
+      <details class="q">
+        <summary>¿Qué diferencia hay entre el color del semáforo del día y los colores de la tabla por horas?</summary>
+        <div class="a">El sistema de colores de la tabla clasifica las horas <b>dentro del mismo día</b>, para que identifiques de un vistazo las horas más caras y más baratas. El color del <b>semáforo del día</b> se obtiene al comparar el precio medio de hoy con el precio medio de días anteriores.</div>
+      </details>
+
+      <details class="q">
+        <summary>¿Qué colores puede mostrar el semáforo?</summary>
+        <div class="a">
+          <ul>
+            <li><span class="dotc" style="background:var(--caro)"></span><b>Rojo:</b> día anormalmente caro, ¡cuidado!</li>
+            <li><span class="dotc" style="background:var(--normal)"></span><b>Amarillo:</b> día medio.</li>
+            <li><span class="dotc" style="background:var(--barato)"></span><b>Verde:</b> día relativamente barato.</li>
+            <li><span class="dotc" style="background:var(--muybarato)"></span><b>Súper verde:</b> día anormalmente barato.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary>¿Por qué creamos este semáforo?</summary>
+        <div class="a">Lo creamos para informar de forma clara y sencilla a todos los usuarios —seas o no experto en energía— sobre el precio de la luz. Así puedes saber de un vistazo si hoy es un buen día para consumir energía, sin tener que analizar tablas de precios.</div>
+      </details>
+
+      <details class="q">
+        <summary>¿Qué datos toma de referencia?</summary>
+        <div class="a">La fuente de referencia es <b>ESIOS, de Red Eléctrica de España (REE)</b>. Para asignar el color del día comparamos el precio medio de la jornada con la media de días anteriores.</div>
+      </details>
+
+      <details class="q">
+        <summary>¿Por qué usar el semáforo?</summary>
+        <div class="a">Te ayuda a elegir los mejores días y las mejores horas para consumir luz, de forma que puedas conseguir un ahorro significativo en tu factura programando tu consumo en los momentos más baratos.</div>
+      </details>
+
+      <details class="q">
+        <summary>¿Cuándo me afecta?</summary>
+        <div class="a">Te afecta si tienes una <b>tarifa regulada de luz (PVPC)</b> o una <b>tarifa indexada</b>. Con una tarifa de precio fijo o con discriminación horaria, las variaciones diarias pueden no reflejarse directamente en lo que pagas.</div>
+      </details>
+    </section>
 
     <footer class="src" id="src">
       <span class="badge"><span class="live-dot"></span><span id="srcText">Datos: Red Eléctrica de España (ESIOS) · PVPC</span></span>
@@ -291,22 +298,19 @@
 (function () {
   "use strict";
 
-  // Zonas PVPC: PCB = Península/Canarias/Baleares · CYM = Ceuta y Melilla
   var API = "https://api.preciodelaluz.org/v1/prices/all?zone=PCB";
   var MONTHS = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 
-  // Dataset de respaldo (€/MWh) — se usa si la API en directo no está accesible
-  // (por ejemplo, sin conexión). Su forma imita la de preciodelaluz.org.
+  // Referencia (€/MWh) para el semáforo del día: media reciente típica del PVPC.
+  // Ajusta este valor si quieres calibrar cuándo un día se considera caro/barato.
+  var REF_AVG = 130;
+
   var SAMPLE = [92,85,80,78,79,84,95,110,125,118,100,88,72,65,62,68,82,105,130,155,172,168,140,108];
 
   function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function fmtPrice(mwh) { return (mwh / 1000).toFixed(3).replace(".", ","); }
+  function hourRange(i) { return pad(i) + ":00–" + pad((i + 1) % 24) + ":00"; }
 
-  function fmtPrice(mwh) {
-    // €/MWh -> €/kWh con 3 decimales
-    return (mwh / 1000).toFixed(3).replace(".", ",");
-  }
-
-  // Clasifica una hora respecto a la distribución del día -> nivel
   function classify(price, sorted) {
     var n = sorted.length;
     var q = function (p) { return sorted[Math.min(n - 1, Math.floor(p * n))]; };
@@ -317,53 +321,124 @@
     return "caro";
   }
 
+  // Semáforo del día: media del día frente a la referencia
+  function dayLevel(avg) {
+    var r = avg / REF_AVG;
+    if (r < 0.60) return "muybarato";
+    if (r < 0.90) return "barato";
+    if (r <= 1.15) return "normal";
+    return "caro";
+  }
+
   var LEVELS = {
-    muybarato: { color: "var(--muybarato)", emoji: "✅", label: "Muy barato",
-      reco: "Momento ideal para poner lavadora, lavavajillas o cargar el coche." },
-    barato: { color: "var(--barato)", emoji: "🟢", label: "Barato",
-      reco: "Buen momento para gastos altos de energía." },
-    normal: { color: "var(--normal)", emoji: "🟡", label: "Normal",
-      reco: "Precio en la media del día. Sin prisa ni urgencia." },
-    caro: { color: "var(--caro)", emoji: "🔴", label: "Caro",
-      reco: "Mejor evita ahora los electrodomésticos de alto consumo." }
+    muybarato: { color: "var(--muybarato)", emoji: "✅", label: "Muy barato" },
+    barato: { color: "var(--barato)", emoji: "🟢", label: "Barato" },
+    normal: { color: "var(--normal)", emoji: "🟡", label: "Normal" },
+    caro: { color: "var(--caro)", emoji: "🔴", label: "Caro" }
   };
+  var DAY = {
+    muybarato: { emoji: "✅", title: "Día anormalmente barato",
+      reco: "Es un día excelente para consumir. Aprovecha para lavadora, lavavajillas, horno o cargar el coche eléctrico." },
+    barato: { emoji: "🟢", title: "Día relativamente barato",
+      reco: "Buen día para gastos altos de energía. Concéntralos en las horas verdes de la tabla." },
+    normal: { emoji: "🟡", title: "Día medio",
+      reco: "Precio en la media. Si puedes, programa el consumo en las horas más baratas de hoy." },
+    caro: { emoji: "🔴", title: "Día anormalmente caro, ¡cuidado!",
+      reco: "Hoy la luz está cara. Si puedes esperar, quizá compense hacerlo mañana; y si no, hazlo solo en las horas más baratas." }
+  };
+  var HOUR_RECO = {
+    muybarato: "<b>✅ Sí, adelante.</b> Ahora mismo la luz está muy barata: momento ideal para lavadora, lavavajillas, horno o cargar el coche.",
+    barato: "<b>🟢 Sí, buen momento.</b> El precio está por debajo de la media del día.",
+    normal: "<b>🟡 Puedes, sin prisa.</b> Precio en la media. Si puedes esperar a una hora verde, ahorrarás algo.",
+    caro: "<b>🔴 Mejor espera.</b> Ahora la luz está cara; consulta las horas más baratas de hoy justo aquí abajo."
+  };
+
+  function topHours(prices, asc, k) {
+    var idx = prices.map(function (p, i) { return i; });
+    idx.sort(function (a, b) { return asc ? prices[a] - prices[b] : prices[b] - prices[a]; });
+    return idx.slice(0, k).sort(function (a, b) { return a - b; });
+  }
+
+  // --- Aviso diario (notificación del navegador) ---
+  var NKEY = "semaforo_notify", LKEY = "semaforo_lastnotify";
+  var lastSummary = "";
+  var notifier = (function () {
+    var btn = document.getElementById("notify");
+    var hint = document.getElementById("notifyhint");
+    var supported = ("Notification" in window);
+    function isOn() { return supported && localStorage.getItem(NKEY) === "1" && Notification.permission === "granted"; }
+    function reflect() {
+      if (!supported) { btn.style.display = "none"; return; }
+      var on = isOn();
+      btn.textContent = on ? "🔔 Aviso diario activado" : "🔔 Aviso diario";
+      btn.classList.toggle("on", on);
+      hint.hidden = !on;
+    }
+    function fire(force) {
+      if (!isOn()) return;
+      var today = new Date().toDateString();
+      if (!force && localStorage.getItem(LKEY) === today) return;
+      localStorage.setItem(LKEY, today);
+      try { new Notification("Semáforo de la luz", { body: lastSummary || "Consulta el precio de la luz de hoy.", tag: "semaforo-daily" }); } catch (e) {}
+    }
+    if (supported) {
+      btn.addEventListener("click", function () {
+        if (localStorage.getItem(NKEY) === "1") { localStorage.removeItem(NKEY); reflect(); return; }
+        Notification.requestPermission().then(function (p) {
+          if (p === "granted") { localStorage.setItem(NKEY, "1"); reflect(); fire(true); }
+          else { reflect(); }
+        });
+      });
+    }
+    reflect();
+    return { fire: fire };
+  })();
 
   function render(prices, isLive, dateLabel) {
     var sorted = prices.slice().sort(function (a, b) { return a - b; });
-    var max = sorted[sorted.length - 1];
-    var min = sorted[0];
+    var max = sorted[sorted.length - 1], min = sorted[0];
     var avg = prices.reduce(function (a, b) { return a + b; }, 0) / prices.length;
-    var cheapHour = prices.indexOf(min);
-    var expHour = prices.indexOf(max);
+    var cheapHour = prices.indexOf(min), expHour = prices.indexOf(max);
+    var now = new Date(), h = now.getHours();
 
-    var now = new Date();
-    var h = now.getHours();
+    document.getElementById("today").textContent = dateLabel || (now.getDate() + " de " + MONTHS[now.getMonth()]);
 
-    var todayEl = document.getElementById("today");
-    todayEl.textContent = dateLabel || (now.getDate() + " de " + MONTHS[now.getMonth()]);
+    // Semáforo del día
+    var dKey = dayLevel(avg), d = DAY[dKey];
+    var band = document.getElementById("dayband");
+    band.style.setProperty("--c1", LEVELS[dKey].color);
+    band.style.setProperty("--c2", "color-mix(in srgb, " + LEVELS[dKey].color + " 78%, #000 12%)");
+    document.getElementById("dbEmoji").textContent = d.emoji;
+    document.getElementById("dbTitle").textContent = d.title;
+    document.getElementById("dbReco").textContent = d.reco;
+    document.getElementById("dbChip").textContent = "Media del día: " + fmtPrice(avg) + " €/kWh";
 
-    // Hero (hora actual)
-    var lvlKey = classify(prices[h], sorted);
-    var lvl = LEVELS[lvlKey];
-    var hero = document.getElementById("hero");
-    var ring = document.getElementById("ring");
+    // Hora actual
+    var lKey = classify(prices[h], sorted), lvl = LEVELS[lKey];
+    var hero = document.getElementById("hero"), ring = document.getElementById("ring");
     var pct = Math.round(((prices[h] - min) / (max - min || 1)) * 100);
-    hero.style.setProperty("--dot", lvl.color);
-    hero.style.setProperty("--glow", lvl.color);
-    ring.style.setProperty("--dot", lvl.color);
-    ring.style.setProperty("--p", Math.max(6, pct));
+    hero.style.setProperty("--dot", lvl.color); hero.style.setProperty("--glow", lvl.color);
+    ring.style.setProperty("--dot", lvl.color); ring.style.setProperty("--p", Math.max(6, pct));
     document.getElementById("heroEmoji").textContent = lvl.emoji;
     document.getElementById("heroState").textContent = lvl.label;
     document.getElementById("heroState").style.color = lvl.color;
     document.getElementById("nowLabel").textContent = "Precio de " + pad(h) + ":00 a " + pad((h + 1) % 24) + ":00";
     document.getElementById("nowPrice").textContent = fmtPrice(prices[h]);
-    document.getElementById("reco").innerHTML = "<b>" + lvl.label + ".</b> " + lvl.reco;
+    document.getElementById("reco").innerHTML = "<b>" + lvl.label + ".</b> " + (
+      lKey === "caro" ? "Evita ahora los electrodomésticos de alto consumo." :
+      lKey === "normal" ? "Precio en la media del día." : "Buen momento para gastos altos de energía.");
+
+    // Callout
+    document.getElementById("callout").style.setProperty("--edge", lvl.color);
+    document.getElementById("calloutAnswer").innerHTML = HOUR_RECO[lKey];
+    var cheap3 = topHours(prices, true, 3), exp3 = topHours(prices, false, 3);
+    document.getElementById("cheapHours").textContent = cheap3.map(function (i) { return pad(i) + ":00"; }).join(" · ");
+    document.getElementById("expHours").textContent = exp3.map(function (i) { return pad(i) + ":00"; }).join(" · ");
 
     document.getElementById("dayAvgHint").textContent = "media " + fmtPrice(avg) + " €/kWh";
 
-    // Barras + eje
-    var bars = document.getElementById("bars");
-    var axis = document.getElementById("axis");
+    // Barras
+    var bars = document.getElementById("bars"), axis = document.getElementById("axis");
     bars.innerHTML = ""; axis.innerHTML = "";
     for (var i = 0; i < 24; i++) {
       var key = classify(prices[i], sorted);
@@ -372,13 +447,9 @@
       bar.className = "bar" + (i === h ? " now" : "");
       bar.setAttribute("title", pad(i) + ":00 · " + fmtPrice(prices[i]) + " €/kWh · " + LEVELS[key].label);
       var fill = document.createElement("div");
-      fill.className = "fill";
-      fill.style.setProperty("--c", LEVELS[key].color);
-      fill.style.height = "0%";
-      bar.appendChild(fill);
-      bars.appendChild(bar);
+      fill.className = "fill"; fill.style.setProperty("--c", LEVELS[key].color); fill.style.height = "0%";
+      bar.appendChild(fill); bars.appendChild(bar);
       (function (f, ph) { requestAnimationFrame(function () { f.style.height = ph.toFixed(1) + "%"; }); })(fill, barPct);
-
       var ax = document.createElement("span");
       ax.textContent = pad(i);
       if (i % 3 !== 0 && i !== h) { ax.className = "hide"; }
@@ -388,36 +459,29 @@
 
     // Tiles
     document.getElementById("cheapV").textContent = fmtPrice(min);
-    document.getElementById("cheapM").textContent = pad(cheapHour) + ":00 – " + pad((cheapHour + 1) % 24) + ":00 €/kWh";
+    document.getElementById("cheapM").textContent = hourRange(cheapHour) + " €/kWh";
     document.getElementById("expV").textContent = fmtPrice(max);
-    document.getElementById("expM").textContent = pad(expHour) + ":00 – " + pad((expHour + 1) % 24) + ":00 €/kWh";
+    document.getElementById("expM").textContent = hourRange(expHour) + " €/kWh";
     document.getElementById("avgV").textContent = fmtPrice(avg);
 
-    // Pie / fuente
-    var src = document.getElementById("src");
-    var srcText = document.getElementById("srcText");
-    if (isLive) {
-      src.classList.remove("demo");
-      srcText.textContent = "Datos en directo: Red Eléctrica de España (ESIOS) · PVPC";
-    } else {
-      src.classList.add("demo");
-      srcText.textContent = "Datos de ejemplo (sin conexión) · Fuente real: REE / ESIOS";
-    }
+    // Fuente
+    var src = document.getElementById("src"), srcText = document.getElementById("srcText");
+    if (isLive) { src.classList.remove("demo"); srcText.textContent = "Datos en directo: Red Eléctrica de España (ESIOS) · PVPC"; }
+    else { src.classList.add("demo"); srcText.textContent = "Datos de ejemplo (sin conexión) · Fuente real: REE / ESIOS"; }
+
+    // Resumen diario del mercado (para el aviso)
+    lastSummary = d.title + " · media " + fmtPrice(avg) + " €/kWh · más barata "
+      + pad(cheapHour) + ":00 (" + fmtPrice(min) + ") · más cara " + pad(expHour) + ":00 (" + fmtPrice(max) + ")";
+    notifier.fire(false);
   }
 
   function parseApi(json) {
-    // preciodelaluz.org: objeto con claves "00-01" ... "23-24"
-    var out = new Array(24).fill(null);
-    var dateLabel = null;
+    var out = new Array(24).fill(null), dateLabel = null;
     Object.keys(json).forEach(function (k) {
       var m = /^(\d{2})-(\d{2})$/.exec(k);
       if (!m) return;
-      var idx = parseInt(m[1], 10);
-      var row = json[k];
-      if (row && typeof row.price === "number") {
-        out[idx] = row.price; // €/MWh
-        if (!dateLabel && row.date) dateLabel = row.date;
-      }
+      var idx = parseInt(m[1], 10), row = json[k];
+      if (row && typeof row.price === "number") { out[idx] = row.price; if (!dateLabel && row.date) dateLabel = row.date; }
     });
     if (out.some(function (v) { return v === null; })) return null;
     return { prices: out, dateLabel: dateLabel };
@@ -427,28 +491,13 @@
     var btn = document.getElementById("refresh");
     btn.disabled = true; btn.textContent = "Actualizando…";
     var done = function () { btn.disabled = false; btn.textContent = "Actualizar"; };
-
-    if (typeof fetch !== "function") {
-      render(SAMPLE, false); done(); return;
-    }
-    var ctrl = null;
-    try { ctrl = new AbortController(); } catch (e) {}
+    if (typeof fetch !== "function") { render(SAMPLE, false); done(); return; }
+    var ctrl = null; try { ctrl = new AbortController(); } catch (e) {}
     var t = setTimeout(function () { if (ctrl) ctrl.abort(); }, 7000);
-
     fetch(API, ctrl ? { signal: ctrl.signal } : undefined)
       .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
-      .then(function (json) {
-        clearTimeout(t);
-        var parsed = parseApi(json);
-        if (!parsed) throw new Error("shape");
-        render(parsed.prices, true, parsed.dateLabel);
-        done();
-      })
-      .catch(function () {
-        clearTimeout(t);
-        render(SAMPLE, false);
-        done();
-      });
+      .then(function (json) { clearTimeout(t); var p = parseApi(json); if (!p) throw new Error("shape"); render(p.prices, true, p.dateLabel); done(); })
+      .catch(function () { clearTimeout(t); render(SAMPLE, false); done(); });
   }
 
   document.getElementById("refresh").addEventListener("click", load);
